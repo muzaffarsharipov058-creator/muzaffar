@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Трекер здоровья</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Общие стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 30px;
+        }
+
+        /* Заголовок */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        header h1 i {
+            color: #e74c3c;
+            margin-right: 15px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            font-weight: 300;
+        }
+
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            background-color: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tab-btn:hover {
+            background-color: #f0f7ff;
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .tab-btn i {
+            font-size: 1.2rem;
+        }
+
+        /* Содержимое вкладок */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .tab-content h2 {
+            font-family: 'Montserrat', sans-serif;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Селектор даты */
+        .date-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .date-selector button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .date-selector button:hover {
+            background-color: #2980b9;
+        }
+
+        #current-date {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        /* Формы */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, 
+        .form-group select:focus, 
+        .form-group textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        .form-group input[type="range"] {
+            padding: 0;
+            height: 8px;
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        /* Кнопки */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-warning {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #c0392b;
+        }
+
+        /* История записей */
+        .history {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .history h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .record {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-10px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .record-date {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .delete-record {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .record-content {
+            color: #555;
+        }
+
+        .record-metrics {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .metric {
+            background-color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Быстрые действия */
+        .quick-actions {
+            margin-top: 40px;
+            padding: 25px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .quick-actions h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .btn-action {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            background-color: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-action:hover {
+            background-color: #f0f7ff;
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        /* Футер */
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            text-align: center;
+            color: #7f8c8d;
+            border-top: 2px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .tip {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #fff9e6;
+            border-radius: 8px;
+            color: #e67e22;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: modalFadeIn 0.3s;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .close-modal:hover {
+            color: #e74c3c;
+        }
+
+        #modal-title {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn-action {
+                min-width: 100%;
+            }
+        }
+
+        /* Индикаторы здоровья */
+        .health-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .health-good { background-color: #2ecc71; }
+        .health-medium { background-color: #f39c12; }
+        .health-bad { background-color: #e74c3c; }
+        
+        .no-data {
+            color: #7f8c8d;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-heartbeat"></i> Трекер моего здоровья</h1>
+            <p class="subtitle">Отслеживайте самочувствие, показатели и прием лекарств</p>
+        </header>
+
+        <!-- Навигация -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="daily"><i class="fas fa-calendar-day"></i> Дневник</button>
+            <button class="tab-btn" data-tab="metrics"><i class="fas fa-chart-line"></i> Показатели</button>
+            <button class="tab-btn" data-tab="medications"><i class="fas fa-pills"></i> Лекарства</button>
+            <button class="tab-btn" data-tab="appointments"><i class="fas fa-stethoscope"></i> Врачи</button>
+            <button class="tab-btn" data-tab="vaccinations"><i class="fas fa-syringe"></i> Прививки</button>
+        </nav>
+
+        <!-- Вкладка ежедневного дневника -->
+        <div class="tab-content active" id="daily-tab">
+            <h2><i class="fas fa-book-medical"></i> Ежедневный дневник</h2>
+            <div class="date-selector">
+                <button id="prev-day"><i class="fas fa-chevron-left"></i></button>
+                <h3 id="current-date">Сегодня, 1 октября 2024</h3>
+                <button id="next-day"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            
+            <form id="daily-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="wellbeing">Самочувствие <span id="wellbeing-value">5</span>/10</label>
+                        <input type="range" id="wellbeing" min="1" max="10" value="5">
+                        <div class="scale-labels">
+                            <span>Плохо</span>
+                            <span>Отлично</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mood">Настроение <span id="mood-value">5</span>/10</label>
+                        <input type="range" id="mood" min="1" max="10" value="5">
+                        <div class="scale-labels">
+                            <span>Плохое</span>
+                            <span>Отличное</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sleep">Сон (часов)</label>
+                        <input type="number" id="sleep" min="0" max="24" step="0.5" value="8">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sleep-quality">Качество сна <span id="sleep-quality-value">3</span>/5</label>
+                        <input type="range" id="sleep-quality" min="1" max="5" value="3">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="activity">Активность (минут)</label>
+                        <input type="number" id="activity" min="0" value="30">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="energy">Энергия <span id="energy-value">5</span>/10</label>
+                        <input type="range" id="energy" min="1" max="10" value="5">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="activity-type">Чем занимался сегодня?</label>
+                    <input type="text" id="activity-type" placeholder="Например: прогулка, йога, работа">
+                </div>
+                
+                <div class="form-group">
+                    <label for="symptoms">Симптомы / Жалобы</label>
+                    <textarea id="symptoms" rows="3" placeholder="Опишите симптомы, если есть"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Примечания (стресс, события)</label>
+                    <textarea id="notes" rows="3" placeholder="Заметки о дне"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="water">Вода выпита (литры)</label>
+                    <input type="number" id="water" min="0" max="10" step="0.25" value="1.5">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Сохранить запись
+                </button>
+                <button type="button" id="reset-form" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> Сбросить форму
+                </button>
+            </form>
+            
+            <div class="history">
+                <h3>Последние записи</h3>
+                <div id="daily-history"></div>
+            </div>
+        </div>
+
+        <!-- Вкладка медицинских показателей -->
+        <div class="tab-content" id="metrics-tab">
+            <h2><i class="fas fa-weight-scale"></i> Медицинские показатели</h2>
+            <form id="metrics-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="weight">Вес (кг)</label>
+                        <input type="number" id="weight" min="0" max="300" step="0.1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pressure-top">Давление (верхнее)</label>
+                        <input type="number" id="pressure-top" min="50" max="250">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pressure-bottom">Давление (нижнее)</label>
+                        <input type="number" id="pressure-bottom" min="30" max="150">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pulse">Пульс (уд/мин)</label>
+                        <input type="number" id="pulse" min="30" max="200">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="temperature">Температура (°C)</label>
+                        <input type="number" id="temperature" min="35" max="43" step="0.1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="glucose">Сахар в крови (ммоль/л)</label>
+                        <input type="number" id="glucose" min="0" max="30" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="metrics-notes">Примечания к замерам</label>
+                    <input type="text" id="metrics-notes" placeholder="Например: после сна, до еды">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Добавить замеры
+                </button>
+            </form>
+            
+            <div class="history">
+                <h3>История измерений</h3>
+                <div id="metrics-history"></div>
+            </div>
+        </div>
+
+        <!-- Вкладка лекарств -->
+        <div class="tab-content" id="medications-tab">
+            <h2><i class="fas fa-capsules"></i> Прием лекарств и добавок</h2>
+            <form id="medications-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="med-name">Название лекарства</label>
+                        <input type="text" id="med-name" placeholder="Например: Магний B6" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="med-dose">Доза</label>
+                        <input type="text" id="med-dose" placeholder="Например: 1 таблетка" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="med-time">Время приема</label>
+                        <select id="med-time">
+                            <option value="утро">Утро</option>
+                            <option value="обед">Обед</option>
+                            <option value="вечер">Вечер</option>
+                            <option value="ночь">Ночь</option>
+                            <option value="по необходимости">По необходимости</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="med-taken">Принято?</label>
+                        <select id="med-taken">
+                            <option value="yes">✅ Да</option>
+                            <option value="no">❌ Нет</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="med-notes">Примечания</label>
+                    <input type="text" id="med-notes" placeholder="Например: после еды, курс 30 дней">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Добавить запись
+                </button>
+            </form>
+            
+            <div class="history">
+                <h3>Сегодняшние лекарства</h3>
+                <div id="today-meds"></div>
+                
+                <h3>История приема</h3>
+                <div id="medications-history"></div>
+            </div>
+        </div>
+
+        <!-- Вкладка врачей -->
+        <div class="tab-content" id="appointments-tab">
+            <h2><i class="fas fa-user-md"></i> Приемы у врачей</h2>
+            <form id="appointments-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="appointment-date">Дата приема</label>
+                        <input type="date" id="appointment-date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="doctor">Врач / Специализация</label>
+                        <input type="text" id="doctor" placeholder="Например: Кардиолог" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reason">Причина визита</label>
+                        <input type="text" id="reason" placeholder="Например: плановый осмотр" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="diagnosis">Диагноз / Рекомендации</label>
+                    <textarea id="diagnosis" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="prescriptions">Назначения (анализы, процедуры)</label>
+                    <textarea id="prescriptions" rows="2"></textarea>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="next-visit">Следующий визит</label>
+                        <input type="date" id="next-visit">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="appointment-notes">Примечания</label>
+                        <input type="text" id="appointment-notes" placeholder="Например: выписан больничный">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-calendar-plus"></i> Добавить прием
+                </button>
+            </form>
+            
+            <div class="history">
+                <h3>Будущие приемы</h3>
+                <div id="upcoming-appointments"></div>
+                
+                <h3>История посещений</h3>
+                <div id="appointments-history"></div>
+            </div>
+        </div>
+
+        <!-- Вкладка прививок -->
+        <div class="tab-content" id="vaccinations-tab">
+            <h2><i class="fas fa-shield-virus"></i> Прививки и вакцинации</h2>
+            <form id="vaccinations-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="vaccination-date">Дата</label>
+                        <input type="date" id="vaccination-date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="vaccine-name">Название вакцины</label>
+                        <input type="text" id="vaccine-name" placeholder="Например: Против гриппа" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="next-vaccination-date">Следующая вакцинация</label>
+                        <input type="date" id="next-vaccination-date">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="vaccination-place">Место / Врач</label>
+                    <input type="text" id="vaccination-place" placeholder="Например: Поликлиника №1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vaccination-reaction">Реакция / Примечания</label>
+                    <textarea id="vaccination-reaction" rows="3" placeholder="Опишите реакцию, если была"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-syringe"></i> Добавить прививку
+                </button>
+            </form>
+            
+            <div class="history">
+                <h3>Предстоящие вакцинации</h3>
+                <div id="upcoming-vaccinations"></div>
+                
+                <h3>История прививок</h3>
+                <div id="vaccinations-history"></div>
+            </div>
+        </div>
+
+        <!-- Панель быстрых действий -->
+        <div class="quick-actions">
+            <h3><i class="fas fa-bolt"></i> Быстрые действия</h3>
+            <div class="action-buttons">
+                <button id="quick-note" class="btn-action">
+                    <i class="fas fa-sticky-note"></i> Быстрая заметка
+                </button>
+                <button id="export-data" class="btn-action">
+                    <i class="fas fa-download"></i> Экспорт данных
+                </button>
+                <button id="import-data" class="btn-action">
+                    <i class="fas fa-upload"></i> Импорт данных
+                </button>
+                <button id="clear-data" class="btn-action btn-warning">
+                    <i class="fas fa-trash"></i> Очистить все данные
+                </button>
+            </div>
+        </div>
+
+        <footer>
+            <p>Трекер здоровья &copy; 2024 | Данные сохраняются в вашем браузере</p>
+            <p class="tip"><i class="fas fa-lightbulb"></i> Совет: Регулярно экспортируйте данные для сохранения</p>
+        </footer>
+    </div>
+
+    <!-- Модальное окно -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 id="modal-title">Заголовок</h3>
+            <div id="modal-body">Содержимое модального окна</div>
+        </div>
+    </div>
+
+    <script>
+        // Основной объект для хранения данных
+        let healthData = {
+            daily: {},
+            metrics: [],
+            medications: [],
+            appointments: [],
+            vaccinations: []
+        };
+
+        // Текущая выбранная дата для дневника
+        let currentDate = new Date();
+
+        // Инициализация приложения
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загружаем данные из localStorage
+            loadData();
+            
+            // Устанавливаем текущую дату
+            updateDateDisplay();
+            
+            // Загружаем историю для текущей даты
+            loadDailyData();
+            loadAllHistory();
+            
+            // Настройка вкладок
+            setupTabs();
+            
+            // Настройка формы дневника
+            setupDailyForm();
+            
+            // Настройка других форм
+            setupMetricsForm();
+            setupMedicationsForm();
+            setupAppointmentsForm();
+            setupVaccinationsForm();
+            
+            // Настройка кнопок быстрых действий
+            setupQuickActions();
+            
+            // Настройка ползунков
+            setupSliders();
+            
+            // Настройка навигации по датам
+            setupDateNavigation();
+            
+            // Установка сегодняшней даты в формах
+            setDefaultDates();
+        });
+
+        // =============== УТИЛИТЫ ===============
+
+        // Форматирование даты
+        function formatDate(date) {
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            return date.toLocaleDateString('ru-RU', options);
+        }
+
+        // Форматирование даты для ключа
+        function getDateKey(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // Сохранение данных в localStorage
+        function saveData() {
+            localStorage.setItem('healthTrackerData', JSON.stringify(healthData));
+        }
+
+        // Загрузка данных из localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('healthTrackerData');
+            if (savedData) {
+                healthData = JSON.parse(savedData);
+            }
+        }
+        
+        // Установка сегодняшней даты по умолчанию
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            if (document.getElementById('appointment-date')) {
+                document.getElementById('appointment-date').value = today;
+            }
+            if (document.getElementById('vaccination-date')) {
+                document.getElementById('vaccination-date').value = today;
+            }
+        }
+
+        // =============== НАСТРОЙКА ВКЛАДОК ===============
+
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Убираем активный класс у всех кнопок и вкладок
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Добавляем активный класс к текущей кнопке
+                    this.classList.add('active');
+                    
+                    // Показываем соответствующую вкладку
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                    
+                    // Загружаем историю для активной вкладки
+                    loadAllHistory();
+                });
+            });
+        }
+
+        // =============== НАСТРОЙКА ПОЛЗУНКОВ ===============
+
+        function setupSliders() {
+            // Обновление значений ползунков в реальном времени
+            const sliders = document.querySelectorAll('input[type="range"]');
+            sliders.forEach(slider => {
+                const valueSpan = document.getElementById(`${slider.id}-value`);
+                if (valueSpan) {
+                    slider.addEventListener('input', function() {
+                        valueSpan.textContent = this.value;
+                    });
+                }
+            });
+        }
+
+        // =============== НАВИГАЦИЯ ПО ДАТАМ ===============
+
+        function setupDateNavigation() {
+            document.getElementById('prev-day').addEventListener('click', function() {
+                currentDate.setDate(currentDate.getDate() - 1);
+                updateDateDisplay();
+                loadDailyData();
+            });
+            
+            document.getElementById('next-day').addEventListener('click', function() {
+                currentDate.setDate(currentDate.getDate() + 1);
+                updateDateDisplay();
+                loadDailyData();
+            });
+        }
+
+        function updateDateDisplay() {
+            const today = new Date();
+            const dateKey = getDateKey(currentDate);
+            const todayKey = getDateKey(today);
+            
+            let dateText = formatDate(currentDate);
+            if (dateKey === todayKey) {
+                dateText = 'Сегодня, ' + dateText;
+            } else if (dateKey === getDateKey(new Date(today.getTime() - 24*60*60*1000))) {
+                dateText = 'Вчера, ' + dateText;
+            } else if (dateKey === getDateKey(new Date(today.getTime() + 24*60*60*1000))) {
+                dateText = 'Завтра, ' + dateText;
+            }
+            
+            document.getElementById('current-date').textContent = dateText;
+        }
+
+        // =============== ЕЖЕДНЕВНЫЙ ДНЕВНИК ===============
+
+        function setupDailyForm() {
+            const form = document.getElementById('daily-form');
+            const resetBtn = document.getElementById('reset-form');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveDailyEntry();
+            });
+            
+            resetBtn.addEventListener('click', function() {
+                form.reset();
+                document.querySelectorAll('#daily-form input[type="range"]').forEach(slider => {
+                    const valueSpan = document.getElementById(`${slider.id}-value`);
+                    if (valueSpan) valueSpan.textContent = slider.value;
+                });
+            });
+        }
+
+        function saveDailyEntry() {
+            const dateKey = getDateKey(currentDate);
+            
+            const entry = {
+                wellbeing: document.getElementById('wellbeing').value,
+                mood: document.getElementById('mood').value,
+                sleep: document.getElementById('sleep').value,
+                sleepQuality: document.getElementById('sleep-quality').value,
+                activity: document.getElementById('activity').value,
+                activityType: document.getElementById('activity-type').value,
+                symptoms: document.getElementById('symptoms').value,
+                notes: document.getElementById('notes').value,
+                water: document.getElementById('water').value,
+                energy: document.getElementById('energy').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Сохраняем запись
+            healthData.daily[dateKey] = entry;
+            saveData();
+            
+            // Показываем уведомление
+            showModal('Запись сохранена', `Данные за ${formatDate(currentDate)} успешно сохранены.`);
+            
+            // Обновляем историю
+            loadDailyData();
+            loadAllHistory();
+            
+            // Сбрасываем форму
+            document.getElementById('daily-form').reset();
+            
+            // Восстанавливаем значения ползунков
+            document.querySelectorAll('#daily-form input[type="range"]').forEach(slider => {
+                const valueSpan = document.getElementById(`${slider.id}-value`);
+                if (valueSpan) valueSpan.textContent = slider.value;
+            });
+        }
+
+        function loadDailyData() {
+            const dateKey = getDateKey(currentDate);
+            const entry = healthData.daily[dateKey];
+            
+            if (entry) {
+                document.getElementById('wellbeing').value = entry.wellbeing || 5;
+                document.getElementById('wellbeing-value').textContent = entry.wellbeing || 5;
+                
+                document.getElementById('mood').value = entry.mood || 5;
+                document.getElementById('mood-value').textContent = entry.mood || 5;
+                
+                document.getElementById('sleep').value = entry.sleep || 8;
+                document.getElementById('sleep-quality').value = entry.sleepQuality || 3;
+                document.getElementById('sleep-quality-value').textContent = entry.sleepQuality || 3;
+                
+                document.getElementById('activity').value = entry.activity || 30;
+                document.getElementById('activity-type').value = entry.activityType || '';
+                document.getElementById('symptoms').value = entry.symptoms || '';
+                document.getElementById('notes').value = entry.notes || '';
+                document.getElementById('water').value = entry.water || 1.5;
+                document.getElementById('energy').value = entry.energy || 5;
+                document.getElementById('energy-value').textContent = entry.energy || 5;
+            } else {
+                // Сброс формы для новой даты
+                document.getElementById('daily-form').reset();
+                document.getElementById('wellbeing-value').textContent = '5';
+                document.getElementById('mood-value').textContent = '5';
+                document.getElementById('sleep-quality-value').textContent = '3';
+                document.getElementById('energy-value').textContent = '5';
+            }
+        }
+
+        // =============== МЕДИЦИНСКИЕ ПОКАЗАТЕЛИ ===============
+
+        function setupMetricsForm() {
+            const form = document.getElementById('metrics-form');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveMetricsEntry();
+            });
+        }
+
+        function saveMetricsEntry() {
+            const entry = {
+                date: new Date().toISOString(),
+                weight: document.getElementById('weight').value,
+                pressureTop: document.getElementById('pressure-top').value,
+                pressureBottom: document.getElementById('pressure-bottom').value,
+                pulse: document.getElementById('pulse').value,
+                temperature: document.getElementById('temperature').value,
+                glucose: document.getElementById('glucose').value,
+                notes: document.getElementById('metrics-notes').value
+            };
+            
+            // Проверяем, что хотя бы одно поле заполнено
+            if (!entry.weight && !entry.pressureTop && !entry.pulse && !entry.temperature && !entry.glucose) {
+                showModal('Ошибка', 'Заполните хотя бы одно поле!');
+                return;
+            }
+            
+            healthData.metrics.unshift(entry);
+            saveData();
+            
+            showModal('Данные сохранены', 'Медицинские показатели успешно добавлены.');
+            document.getElementById('metrics-form').reset();
+            loadAllHistory();
+        }
+
+        // =============== ЛЕКАРСТВА ===============
+
+        function setupMedicationsForm() {
+            const form = document.getElementById('medications-form');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveMedicationEntry();
+            });
+        }
+
+        function saveMedicationEntry() {
+            const entry = {
+                date: new Date().toISOString(),
+                name: document.getElementById('med-name').value,
+                dose: document.getElementById('med-dose').value,
+                time: document.getElementById('med-time').value,
+                taken: document.getElementById('med-taken').value,
+                notes: document.getElementById('med-notes').value
+            };
+            
+            healthData.medications.unshift(entry);
+            saveData();
+            
+            showModal('Лекарство добавлено', 'Запись о приеме лекарства сохранена.');
+            document.getElementById('medications-form').reset();
+            loadAllHistory();
+        }
+
+        // =============== ПРИЕМЫ У ВРАЧЕЙ ===============
+
+        function setupAppointmentsForm() {
+            const form = document.getElementById('appointments-form');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveAppointmentEntry();
+            });
+        }
+
+        function saveAppointmentEntry() {
+            const entry = {
+                date: document.getElementById('appointment-date').value,
+                doctor: document.getElementById('doctor').value,
+                reason: document.getElementById('reason').value,
+                diagnosis: document.getElementById('diagnosis').value,
+                prescriptions: document.getElementById('prescriptions').value,
+                nextVisit: document.getElementById('next-visit').value,
+                notes: document.getElementById('appointment-notes').value,
+                added: new Date().toISOString()
+            };
+            
+            healthData.appointments.unshift(entry);
+            saveData();
+            
+            showModal('Прием добавлен', 'Запись о приеме у врача сохранена.');
+            document.getElementById('appointments-form').reset();
+            
+            // Сбрасываем дату на сегодня
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('appointment-date').value = today;
+            
+            loadAllHistory();
+        }
+
+        // =============== ПРИВИВКИ ===============
+
+        function setupVaccinationsForm() {
+            const form = document.getElementById('vaccinations-form');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveVaccinationEntry();
+            });
+        }
+
+        function saveVaccinationEntry() {
+            const entry = {
+                date: document.getElementById('vaccination-date').value,
+                name: document.getElementById('vaccine-name').value,
+                nextDate: document.getElementById('next-vaccination-date').value,
+                place: document.getElementById('vaccination-place').value,
+                reaction: document.getElementById('vaccination-reaction').value,
+                added: new Date().toISOString()
+            };
+            
+            healthData.vaccinations.unshift(entry);
+            saveData();
+            
+            showModal('Прививка добавлена', 'Запись о вакцинации сохранена.');
+            document.getElementById('vaccinations-form').reset();
+            
+            // Сбрасываем дату на сегодня
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('vaccination-date').value = today;
+            
+            loadAllHistory();
+        }
+
+        // =============== ЗАГРУЗКА ИСТОРИИ ===============
+
+        function loadAllHistory() {
+            loadDailyHistory();
+            loadMetricsHistory();
+            loadMedicationsHistory();
+            loadAppointmentsHistory();
+            loadVaccinationsHistory();
+        }
+
+        function loadDailyHistory() {
+            const container = document.getElementById('daily-history');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // Получаем последние 5 записей
+            const dates = Object.keys(healthData.daily).sort().reverse().slice(0, 5);
+            
+            if (dates.length === 0) {
+                container.innerHTML = '<p class="no-data">Записей пока нет. Начните заполнять дневник!</p>';
+                return;
+            }
+            
+            dates.forEach(dateKey => {
+                const entry = healthData.daily[dateKey];
+                const date = new Date(dateKey);
+                
+                const record = document.createElement('div');
+                record.className = 'record';
+                
+                // Определяем индикатор здоровья
+                let healthClass = 'health-medium';
+                if (entry.wellbeing >= 7) healthClass = 'health-good';
+                if (entry.wellbeing <= 4) healthClass = 'health-bad';
+                
+                record.innerHTML = `
+                    <div class="record-header">
+                        <div class="record-date">
+                            <span class="health-indicator ${healthClass}"></span>
+                            ${formatDate(date)}
+                        </div>
+                        <button class="delete-record" onclick="deleteDailyEntry('${dateKey}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="record-content">
+                        <p><strong>Самочувствие:</strong> ${entry.wellbeing}/10 | <strong>Настроение:</strong> ${entry.mood}/10</p>
+                        <p><strong>Сон:</strong> ${entry.sleep} часов (качество: ${entry.sleepQuality}/5)</p>
+                        ${entry.activity ? `<p><strong>Активность:</strong> ${entry.activity} мин (${entry.activityType || 'не указано'})</p>` : ''}
+                        ${entry.symptoms ? `<p><strong>Симптомы:</strong> ${entry.symptoms}</p>` : ''}
+                        ${entry.notes ? `<p><strong>Заметки:</strong> ${entry.notes}</p>` : ''}
+                    </div>
+                `;
+                
+                container.appendChild(record);
+            });
+        }
+
+        function loadMetricsHistory() {
+            const container = document.getElementById('metrics-history');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (healthData.metrics.length === 0) {
+                container.innerHTML = '<p class="no-data">Замеров пока нет. Добавьте первые показатели!</p>';
+                return;
+            }
+            
+            healthData.metrics.slice(0, 10).forEach((entry, index) => {
+                const date = new Date(entry.date);
+                
+                const record = document.createElement('div');
+                record.className = 'record';
+                
+                let metricsText = '';
+                if (entry.weight) metricsText += `<span class="metric">Вес: ${entry.weight} кг</span>`;
+                if (entry.pressureTop && entry.pressureBottom) {
+                    metricsText += `<span class="metric">Давление: ${entry.pressureTop}/${entry.pressureBottom}</span>`;
+                }
+                if (entry.pulse) metricsText += `<span class="metric">Пульс: ${entry.pulse}</span>`;
+                if (entry.temperature) metricsText += `<span class="metric">Температура: ${entry.temperature}°C</span>`;
+                if (entry.glucose) metricsText += `<span class="metric">Сахар: ${entry.glucose}</span>`;
+                
+                record.innerHTML = `
+                    <div class="record-header">
+                        <div class="record-date">${date.toLocaleDateString('ru-RU')} ${date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}</div>
+                        <button class="delete-record" onclick="deleteMetric(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="record-content">
+                        <div class="record-metrics">${metricsText}</div>
+                        ${entry.notes ? `<p><strong>Примечания:</strong> ${entry.notes}</p>` : ''}
+                    </div>
+                `;
+                
+                container.appendChild(record);
+            });
+        }
+
+        function loadMedicationsHistory() {
+            const container = document.getElementById('medications-history');
+            const todayContainer = document.getElementById('today-meds');
+            if (!container || !todayContainer) return;
+            
+            container.innerHTML = '';
+            todayContainer.innerHTML = '';
+            
+            if (healthData.medications.length === 0) {
+                container.innerHTML = '<p class="no-data">Записей о лекарствах пока нет.</p>';
+                todayContainer.innerHTML = '<p class="no-data">На сегодня лекарств не назначено.</p>';
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            const todayMeds = [];
+            const allMeds = [];
+            
+            healthData.medications.forEach((entry, index) => {
+                const date = new Date(entry.date);
+                const entryDate = date.toISOString().split('T')[0];
+                
+                const record = document.createElement('div');
+                record.className = 'record';
+                
+                const takenIcon = entry.taken === 'yes' ? '✅' : '❌';
+                
+                record.innerHTML = `
+                    <div class="record-header">
+                        <div class="record-date">${date.toLocaleDateString('ru-RU')} ${date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}</div>
+                        <button class="delete-record" onclick="deleteMedication(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="record-content">
+                        <p><strong>${entry.name}</strong> - ${entry.dose} (${entry.time}) ${takenIcon}</p>
+                        ${entry.notes ? `<p><strong>Примечания:</strong> ${entry.notes}</p>` : ''}
+                    </div>
+                `;
+                
+                if (entryDate === today) {
+                    todayMeds.push(record.cloneNode(true));
+                }
+                allMeds.push(record);
+            });
+            
+            // Показываем сегодняшние лекарства
+            if (todayMeds.length === 0) {
+                todayContainer.innerHTML = '<p class="no-data">На сегодня лекарств не назначено.</p>';
+            } else {
+                todayMeds.forEach(record => todayContainer.appendChild(record));
+            }
+            
+            // Показываем все лекарства (первые 10)
+            allMeds.slice(0, 10).forEach(record => container.appendChild(record));
+        }
+
+        function loadAppointmentsHistory() {
+            const container = document.getElementById('appointments-history');
+            const upcomingContainer = document.getElementById('upcoming-appointments');
+            if (!container || !upcomingContainer) return;
+            
+            container.innerHTML = '';
+            upcomingContainer.innerHTML = '';
+            
+            if (healthData.appointments.length === 0) {
+                container.innerHTML = '<p class="no-data">Записей о приемах пока нет.</p>';
+                upcomingContainer.innerHTML = '<p class="no-data">Ближайших приемов нет.</p>';
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            const upcoming = [];
+            const past = [];
+            
+            healthData.appointments.forEach((entry, index) => {
+                const record = document.createElement('div');
+                record.className = 'record';
+                
+                const date = new Date(entry.date + 'T00:00:00');
+                const formattedDate = date.toLocaleDateString('ru-RU', { 
+                    weekday: 'short', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                record.innerHTML = `
+                    <div class="record-header">
+                        <div class="record-date">${formattedDate}</div>
+                        <button class="delete-record" onclick="deleteAppointment(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="record-content">
+                        <p><strong>Врач:</strong> ${entry.doctor}</p>
+                        <p><strong>Причина:</strong> ${entry.reason}</p>
+                        ${entry.diagnosis ? `<p><strong>Диагноз/рекомендации:</strong> ${entry.diagnosis}</p>` : ''}
+                        ${entry.prescriptions ? `<p><strong>Назначения:</strong> ${entry.prescriptions}</p>` : ''}
+                        ${entry.nextVisit ? `<p><strong>Следующий визит:</strong> ${new Date(entry.nextVisit).toLocaleDateString('ru-RU')}</p>` : ''}
+                        ${entry.notes ? `<p><strong>Примечания:</strong> ${entry.notes}</p>` : ''}
+                    </div>
+                `;
+                
+                if (entry.date >= today) {
+                    upcoming.push({date: entry.date, record});
+                } else {
+                    past.push({date: entry.date, record});
+                }
+            });
+            
+            // Сортируем будущие приемы по дате
+            upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Сортируем прошедшие приемы по дате (новые сверху)
+            past.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Показываем ближайшие приемы (первые 5)
+            if (upcoming.length === 0) {
+                upcomingContainer.innerHTML = '<p class="no-data">Ближайших приемов нет.</p>';
+            } else {
+                upcoming.slice(0, 5).forEach(item => upcomingContainer.appendChild(item.record));
+            }
+            
+            // Показываем историю приемов (первые 10)
+            if (past.length === 0) {
+                container.innerHTML = '<p class="no-data">Истории приемов пока нет.</p>';
+            } else {
+                past.slice(0, 10).forEach(item => container.appendChild(item.record));
+            }
+        }
+
+        function loadVaccinationsHistory() {
+            const container = document.getElementById('vaccinations-history');
+            const upcomingContainer = document.getElementById('upcoming-vaccinations');
+            if (!container || !upcomingContainer) return;
+            
+            container.innerHTML = '';
+            upcomingContainer.innerHTML = '';
+            
+            if (healthData.vaccinations.length === 0) {
+                container.innerHTML = '<p class="no-data">Записей о прививках пока нет.</p>';
+                upcomingContainer.innerHTML = '<p class="no-data">Ближайших вакцинаций нет.</p>';
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            const upcoming = [];
+            const past = [];
+            
+            healthData.vaccinations.forEach((entry, index) => {
+                const record = document.createElement('div');
+                record.className = 'record';
+                
+                const date = new Date(entry.date + 'T00:00:00');
+                const formattedDate = date.toLocaleDateString('ru-RU', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                record.innerHTML = `
+                    <div class="record-header">
+                        <div class="record-date">${formattedDate}</div>
+                        <button class="delete-record" onclick="deleteVaccination(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="record-content">
+                        <p><strong>${entry.name}</strong></p>
+                        ${entry.place ? `<p><strong>Место:</strong> ${entry.place}</p>` : ''}
+                        ${entry.nextDate ? `<p><strong>Следующая вакцинация:</strong> ${new Date(entry.nextDate).toLocaleDateString('ru-RU')}</p>` : ''}
+                        ${entry.reaction ? `<p><strong>Реакция/примечания:</strong> ${entry.reaction}</p>` : ''}
+                    </div>
+                `;
+                
+                if (entry.nextDate && entry.nextDate >= today) {
+                    upcoming.push({date: entry.nextDate, record, name: entry.name});
+                }
+                past.push({date: entry.date, record});
+            });
+            
+            // Сортируем будущие вакцинации по дате
+            upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Сортируем прошедшие вакцинации по дате (новые сверху)
+            past.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Показываем ближайшие вакцинации
+            if (upcoming.length === 0) {
+                upcomingContainer.innerHTML = '<p class="no-data">Ближайших вакцинаций нет.</p>';
+            } else {
+                upcoming.slice(0, 5).forEach(item => {
+                    const nextRecord = item.record.cloneNode(true);
+                    const dateSpan = nextRecord.querySelector('.record-date');
+                    if (dateSpan) {
+                        dateSpan.textContent = `Следующая: ${new Date(item.date).toLocaleDateString('ru-RU')} (${item.name})`;
+                    }
+                    upcomingContainer.appendChild(nextRecord);
+                });
+            }
+            
+            // Показываем историю вакцинаций
+            past.slice(0, 10).forEach(item => container.appendChild(item.record));
+        }
+
+        // =============== УДАЛЕНИЕ ЗАПИСЕЙ ===============
+
+        function deleteDailyEntry(dateKey) {
+            if (confirm('Удалить запись за эту дату?')) {
+                delete healthData.daily[dateKey];
+                saveData();
+                loadDailyData();
+                loadAllHistory();
+                showModal('Запись удалена', 'Запись из дневника успешно удалена.');
+            }
+        }
+
+        function deleteMetric(index) {
+            if (confirm('Удалить эти замеры?')) {
+                healthData.metrics.splice(index, 1);
+                saveData();
+                loadAllHistory();
+                showModal('Данные удалены', 'Медицинские показатели удалены.');
+            }
+        }
+
+        function deleteMedication(index) {
+            if (confirm('Удалить запись о лекарстве?')) {
+                healthData.medications.splice(index, 1);
+                saveData();
+                loadAllHistory();
+                showModal('Запись удалена', 'Запись о лекарстве удалена.');
+            }
+        }
+
+        function deleteAppointment(index) {
+            if (confirm('Удалить запись о приеме?')) {
+                healthData.appointments.splice(index, 1);
+                saveData();
+                loadAllHistory();
+                showModal('Запись удалена', 'Запись о приеме удалена.');
+            }
+        }
+
+        function deleteVaccination(index) {
+            if (confirm('Удалить запись о прививке?')) {
+                healthData.vaccinations.splice(index, 1);
+                saveData();
+                loadAllHistory();
+                showModal('Запись удалена', 'Запись о прививке удалена.');
+            }
+        }
+
+        // =============== БЫСТРЫЕ ДЕЙСТВИЯ ===============
+
+        function setupQuickActions() {
+            document.getElementById('quick-note').addEventListener('click', function() {
+                const note = prompt('Введите быструю заметку о самочувствии:');
+                if (note) {
+                    const dateKey = getDateKey(new Date());
+                    if (!healthData.daily[dateKey]) {
+                        healthData.daily[dateKey] = {};
+                    }
+                    healthData.daily[dateKey].quickNote = note;
+                    healthData.daily[dateKey].timestamp = new Date().toISOString();
+                    saveData();
+                    showModal('Заметка сохранена', 'Быстрая заметка добавлена в дневник.');
+                    loadAllHistory();
+                }
+            });
+            
+            document.getElementById('export-data').addEventListener('click', exportData);
+            document.getElementById('import-data').addEventListener('click', importData);
+            document.getElementById('clear-data').addEventListener('click', clearData);
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(healthData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `health-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showModal('Данные экспортированы', 'Все ваши данные сохранены в файл JSON. Храните его в надежном месте.');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        
+                        // Проверяем структуру данных
+                        if (importedData.daily !== undefined && importedData.metrics !== undefined) {
+                            if (confirm('Заменить текущие данные импортированными? Все несохраненные изменения будут потеряны.')) {
+                                healthData = importedData;
+                                saveData();
+                                loadDailyData();
+                                loadAllHistory();
+                                showModal('Данные импортированы', 'Все данные успешно загружены из файла.');
+                            }
+                        } else {
+                            showModal('Ошибка', 'Файл поврежден или имеет неверный формат.');
+                        }
+                    } catch (error) {
+                        showModal('Ошибка', 'Не удалось прочитать файл. Убедитесь, что это правильный файл резервной копии.');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        function clearData() {
+            if (confirm('ВНИМАНИЕ! Вы действительно хотите удалить ВСЕ данные? Это действие нельзя отменить.')) {
+                if (confirm('Последнее предупреждение: все ваши записи будут безвозвратно удалены. Продолжить?')) {
+                    localStorage.removeItem('healthTrackerData');
+                    healthData = {
+                        daily: {},
+                        metrics: [],
+                        medications: [],
+                        appointments: [],
+                        vaccinations: []
+                    };
+                    loadDailyData();
+                    loadAllHistory();
+                    showModal('Данные очищены', 'Все данные были удалены из трекера.');
+                }
+            }
+        }
+
+        // =============== МОДАЛЬНОЕ ОКНО ===============
+
+        function showModal(title, message) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = `<p>${message}</p>`;
+            document.getElementById('modal').style.display = 'flex';
+            
+            // Закрытие модального окна
+            document.querySelector('.close-modal').onclick = function() {
+                document.getElementById('modal').style.display = 'none';
+            };
+            
+            // Закрытие при клике вне окна
+            window.onclick = function(event) {
+                const modal = document.getElementById('modal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+            
+            // Автоматическое закрытие через 3 секунды для информационных сообщений
+            if (!title.includes('Ошибка') && !title.includes('ВНИМАНИЕ')) {
+                setTimeout(() => {
+                    document.getElementById('modal').style.display = 'none';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
